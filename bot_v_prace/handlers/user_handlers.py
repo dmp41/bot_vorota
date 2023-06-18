@@ -11,7 +11,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import (CallbackQuery, InlineKeyboardButton,
-                           InlineKeyboardMarkup, Message, PhotoSize)
+                           InlineKeyboardMarkup, Message, PhotoSize,InputMediaPhoto)
 
 #Получаем ID текущего модератора
 router: Router = Router()
@@ -65,7 +65,9 @@ async def process_cancel_command(message: Message):
 # и переводить бота в состояние ожидания ввода ширины
 @router.message(Command(commands='fillform'), StateFilter(default_state))
 async def process_fillform_command(message: Message, state: FSMContext):
-    await message.answer(text='Пожалуйста, введите ширину проема в мм от 2000 до 4500')
+    await message.answer_photo(photo='AgACAgIAAxkBAAICzmSOycAtV2C51wX9t-n1sgcHARWBAAL1yTEb_0p5SPnbjt5wuD5lAQADAgADcwADLwQ',
+                               caption='Пожалуйста, введите ширину проема в мм от 2000 до 4500')
+    #await message.answer(text='Пожалуйста, введите ширину проема в мм от 2000 до 4500')
     # Устанавливаем состояние ожидания ввода ширины
     await state.set_state(FSMFillForm.fill_long)
 
@@ -77,8 +79,11 @@ async def process_fillform_command(message: Message, state: FSMContext):
 async def process_name_sent(message: Message, state: FSMContext):
     # Cохраняем введенную ширину в хранилище по ключу "long"
     await state.update_data(long=message.text)
-    await message.answer(text='Спасибо!\n\nА теперь введите высоту проема в мм от 1800 до 3000')
-    # Устанавливаем состояние ожидания ввода высоты
+    await message.answer_photo(
+        photo='AgACAgIAAxkBAAIC0GSOyc6VbuETpRvDAAGcxWkgjlVxkAAC9skxG_9KeUj8pQKlgwShKgEAAwIAA3MAAy8E',
+        caption='Спасибо!\n\nА теперь введите высоту проема в мм от 1800 до 3000')
+    #await message.answer(text='Спасибо!\n\nА теперь введите высоту проема в мм от 1800 до 3000')
+    # Устанавливаем состояние ожидания ввода высот
     await state.set_state(FSMFillForm.fill_hight)
 
 
