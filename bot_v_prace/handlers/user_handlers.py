@@ -4,6 +4,7 @@ from aiogram.types import Message
 from bot_v_prace.database.database import user_dict_template,users_db
 from copy import deepcopy
 from aiogram import Bot, Dispatcher, F
+from bot_v_prace.keyboard.keyboard import keyboard
 from bot_v_prace.services.calculate import pr_or,prace
 from aiogram.filters import Command, CommandStart, StateFilter, Text
 from aiogram.filters.state import State, StatesGroup
@@ -38,7 +39,7 @@ class FSMFillForm(StatesGroup):
 async def process_start_command(message: Message):
     await message.answer(text='Этот бот демонстрирует работу FSM\n\n'
                               'Чтобы перейти к заполнению анкеты - '
-                              'отправьте команду /fillform')
+                              'отправьте команду /fillform',reply_markup=keyboard)
 
 
 # Этот хэндлер будет срабатывать на команду "/cancel" в любых состояниях,
@@ -97,32 +98,32 @@ async def warning_not_name(message: Message):
 
 # Этот хэндлер будет срабатывать, если введена корректная высота
 # и переводить в состояние ожидания ввода притолоки
-@router.message(StateFilter(FSMFillForm.fill_hight),
-                lambda x: x.text.isdigit() and 1800 <= int(x.text) <= 3000)
-async def process_name_sent(message: Message, state: FSMContext):
+#@router.message(StateFilter(FSMFillForm.fill_hight),
+                #lambda x: x.text.isdigit() and 1800 <= int(x.text) <= 3000)
+#async def process_name_sent(message: Message, state: FSMContext):
     # Cохраняем введеннную высоту в хранилище по ключу "hight"
-    await state.update_data(hight=message.text)
-    await message.answer(text='Спасибо!\n\nА теперь введите размер притолоки(размер от верха проема до потолка) в мм от 230 до 1000')
-    # Устанавливаем состояние ожидания ввода притолоки
-    await state.set_state(FSMFillForm.fill_prit)
+    #await state.update_data(hight=message.text)
+    #await message.answer(text='Спасибо!\n\nА теперь введите размер притолоки(размер от верха проема до потолка) в мм от 230 до 1000')
+    # Устанавливаем состояние ожидания ввода выбора привода
+    #await state.set_state(FSMFillForm.fill_prit)
 
 
 # Этот хэндлер будет срабатывать, если во время ввода высоты
 # будет введено что-то некорректное
-@router.message(StateFilter(FSMFillForm.fill_hight))
-async def warning_not_name(message: Message):
-    await message.answer(text='Высота проема должна быть числом от 1800 до 3500\n\n'
-                              'Попробуйте еще раз\n\nЕсли вы хотите прервать '
-                              'заполнение анкеты - отправьте команду /cancel')
+#@router.message(StateFilter(FSMFillForm.fill_hight))
+#async def warning_not_name(message: Message):
+    #await message.answer(text='Высота проема должна быть числом от 1800 до 3500\n\n'
+                              #'Попробуйте еще раз\n\nЕсли вы хотите прервать '
+                              #'заполнение анкеты - отправьте команду /cancel')
 
 
-# Этот хэндлер будет срабатывать, если введен корректный размер притолоки
+# Этот хэндлер будет срабатывать, если введен корректный размер высоты проема
 # и переводить в состояние выбора пола
-@router.message(StateFilter(FSMFillForm.fill_prit),
-            lambda x: x.text.isdigit() and 230 <= int(x.text) <= 1000)
+@router.message(StateFilter(FSMFillForm.fill_hight),
+            lambda x: x.text.isdigit() and 1800 <= int(x.text) <= 3000)
 async def process_age_sent(message: Message, state: FSMContext):
-    # Cохраняем притолоку в хранилище по ключу "prit"
-    await state.update_data(prit=message.text)
+    # Cохраняем притолоку в хранилище по ключу "hight"
+    await state.update_data(hight=message.text)
     # Создаем объекты инлайн-кнопок
     motor_button = InlineKeyboardButton(text='Электропривод',
                                        callback_data='Электропривод')
@@ -133,7 +134,7 @@ async def process_age_sent(message: Message, state: FSMContext):
     # Добавляем кнопки в клавиатуру (две в одном ряду и одну в другом)
     keyboard: list[list[InlineKeyboardButton]] = [
         [motor_button,
-         arm_button],[no_m_button]]
+         no_m_button],[arm_button]]
     # Создаем объект инлайн-клавиатуры
     markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
     # Отправляем пользователю сообщение с клавиатурой
@@ -145,10 +146,10 @@ async def process_age_sent(message: Message, state: FSMContext):
 
 # Этот хэндлер будет срабатывать, если во время ввода возраста
 # будет введено что-то некорректное
-@router.message(StateFilter(FSMFillForm.fill_prit))
+@router.message(StateFilter(FSMFillForm.fill_hight))
 async def warning_not_age(message: Message):
     await message.answer(
-        text='Размер притолоки должен быть числом от 230 до 3500\n\n'
+        text='Высота проема должна быть числом от 1800 до 3000\n\n'
              'Попробуйте еще раз\n\nЕсли вы хотите прервать '
              'заполнение анкеты - отправьте команду /cancel')
 
@@ -241,13 +242,17 @@ async def process_showdata_command(message: Message):
         if user_dict[message.from_user.id]["door"] == 'Нет':
             pr_door = 0
         pr_all= int(prace(user_dict[message.from_user.id]["long"],user_dict[message.from_user.id]["hight"]))+pr_motor+pr_door
+
         await message.answer(
                     f'Ширина проема, мм: {user_dict[message.from_user.id]["long"]}\n'
                     f'Высота проема, мм: {user_dict[message.from_user.id]["hight"]}\n'
-                    f'Притолока, мм: {user_dict[message.from_user.id]["prit"]}\n'
+                    #f'Притолока, мм: {user_dict[message.from_user.id]["prit"]}\n'
                     f'Управление: {user_dict[message.from_user.id]["motor"]}\n'
                     f'Калитка: {user_dict[message.from_user.id]["door"]}\n'
-                    f'Цена секционных ворот, руб.: {pr_all}')
+                    f'Стоимость секционных ворот, руб: {pr_all//100*90}\n'
+                    f'Стоимость монтажа в г. Кемерово, руб: {pr_all//100*10+600}\n')
+
+
     else:
         # Если анкеты пользователя в базе нет - предлагаем заполнить
         await message.answer(text='Вы еще не заполняли анкету. '
