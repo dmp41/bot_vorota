@@ -37,8 +37,7 @@ class FSMFillForm(StatesGroup):
 # и предлагать перейти к заполнению анкеты, отправив команду /fillform
 @router.message(CommandStart(), StateFilter(default_state))
 async def process_start_command(message: Message):
-    await message.answer(text='Этот бот демонстрирует работу FSM\n\n'
-                              'Чтобы перейти к заполнению анкеты - '
+    await message.answer(text='Чтобы перейти к заполнению анкеты - '
                               'отправьте команду /fillform',reply_markup=keyboard)
 
 
@@ -46,8 +45,7 @@ async def process_start_command(message: Message):
 # кроме состояния по умолчанию, и отключать машину состояний
 @router.message(Command(commands='cancel'), ~StateFilter(default_state))
 async def process_cancel_command_state(message: Message, state: FSMContext):
-    await message.answer(text='Вы вышли из машины состояний\n\n'
-                              'Чтобы снова перейти к заполнению анкеты - '
+    await message.answer(text='Чтобы снова перейти к заполнению анкеты - '
                               'отправьте команду /fillform')
     # Сбрасываем состояние
     await state.clear()
@@ -57,7 +55,7 @@ async def process_cancel_command_state(message: Message, state: FSMContext):
 # по умолчанию и сообщать, что эта команда доступна в машине состояний
 @router.message(Command(commands='cancel'), StateFilter(default_state))
 async def process_cancel_command(message: Message):
-    await message.answer(text='Отменять нечего. Вы вне машины состояний\n\n'
+    await message.answer(text='Отменять нечего.\n\n'
                               'Чтобы перейти к заполнению анкеты - '
                               'отправьте команду /fillform')
 
@@ -66,8 +64,9 @@ async def process_cancel_command(message: Message):
 # и переводить бота в состояние ожидания ввода ширины
 @router.message(Command(commands='fillform'), StateFilter(default_state))
 async def process_fillform_command(message: Message, state: FSMContext):
-    await message.answer_photo(photo='AgACAgIAAxkBAAICzmSOycAtV2C51wX9t-n1sgcHARWBAAL1yTEb_0p5SPnbjt5wuD5lAQADAgADcwADLwQ',
-                               caption='Пожалуйста, введите ширину проема в мм от 2000 до 4500')
+    await message.answer_photo(
+        photo='AgACAgIAAxkBAAMSZJEyGcTZQY0ICJlFl7sptYdGUycAAvrOMRsZNIlIjbH-uZ4STSIBAAMCAANzAAMvBA',
+        caption='Пожалуйста, введите ширину проема в мм от 2000 до 4500')
     #await message.answer(text='Пожалуйста, введите ширину проема в мм от 2000 до 4500')
     # Устанавливаем состояние ожидания ввода ширины
     await state.set_state(FSMFillForm.fill_long)
@@ -81,7 +80,7 @@ async def process_name_sent(message: Message, state: FSMContext):
     # Cохраняем введенную ширину в хранилище по ключу "long"
     await state.update_data(long=message.text)
     await message.answer_photo(
-        photo='AgACAgIAAxkBAAIC0GSOyc6VbuETpRvDAAGcxWkgjlVxkAAC9skxG_9KeUj8pQKlgwShKgEAAwIAA3MAAy8E',
+        photo='AgACAgIAAxkBAAMUZJEyIYtGx6E2E_T4q5Tirql7S7QAAv3OMRsZNIlIff9gZjJ1dhsBAAMCAANzAAMvBA',
         caption='Спасибо!\n\nА теперь введите высоту проема в мм от 1800 до 3000')
     #await message.answer(text='Спасибо!\n\nА теперь введите высоту проема в мм от 1800 до 3000')
     # Устанавливаем состояние ожидания ввода высот
@@ -118,7 +117,7 @@ async def warning_not_name(message: Message):
 
 
 # Этот хэндлер будет срабатывать, если введен корректный размер высоты проема
-# и переводить в состояние выбора пола
+# и переводить в состояние выбора управления
 @router.message(StateFilter(FSMFillForm.fill_hight),
             lambda x: x.text.isdigit() and 1800 <= int(x.text) <= 3000)
 async def process_age_sent(message: Message, state: FSMContext):
@@ -140,11 +139,11 @@ async def process_age_sent(message: Message, state: FSMContext):
     # Отправляем пользователю сообщение с клавиатурой
     await message.answer(text='Спасибо!\n\nВыберите тип управления воротами',
                          reply_markup=markup)
-    # Устанавливаем состояние ожидания выбора пола
+    # Устанавливаем состояние ожидания выбора управления
     await state.set_state(FSMFillForm.fill_motor)
 
 
-# Этот хэндлер будет срабатывать, если во время ввода возраста
+# Этот хэндлер будет срабатывать, если во время ввода высоты
 # будет введено что-то некорректное
 @router.message(StateFilter(FSMFillForm.fill_hight))
 async def warning_not_age(message: Message):
@@ -206,12 +205,13 @@ async def process_wish_news_press(callback: CallbackQuery, state: FSMContext):
     user_dict[callback.from_user.id] = await state.get_data()
     # Завершаем машину состояний
     await state.clear()
+
     # Отправляем в чат сообщение о выходе из машины состояний
-    await callback.message.edit_text(text='Спасибо! Ваши данные сохранены!\n\n'
-                                          'Вы вышли из машины состояний')
+    #await callback.message.edit_text(text='Спасибо! Ваши данные сохранены!\n\n'
+                                          #'Вы вышли из машины состояний')
     # Отправляем в чат сообщение с предложением посмотреть свою анкету
-    await callback.message.answer(text='Чтобы посмотреть данные вашей '
-                                       'анкеты - отправьте команду /showdata')
+    await callback.message.answer(text='Чтобы посмотреть стоимость ворот '
+                                       ' - отправьте команду /showdata')
 
 
 # Этот хэндлер будет срабатывать, если во время согласия на клитку
