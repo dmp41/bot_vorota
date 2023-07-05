@@ -232,16 +232,17 @@ async def process_showdata_command(message: Message):
     if message.from_user.id in user_dict:
         # Присваеваем стоимость приводу, калитке
         if user_dict[message.from_user.id]["motor"] == 'Электропривод':
-            pr_motor=16000
+            pr_motor=17000
         if user_dict[message.from_user.id]["motor"] == 'Ручной цепной привод':
-            pr_motor = 10000
+            pr_motor = 11000
         if user_dict[message.from_user.id]["motor"] == 'Без привода':
             pr_motor = 0
         if user_dict[message.from_user.id]["door"] == 'Да':
-            pr_door=40000
+            pr_door=44000
         if user_dict[message.from_user.id]["door"] == 'Нет':
             pr_door = 0
-        pr_all= int(prace(user_dict[message.from_user.id]["long"],user_dict[message.from_user.id]["hight"]))+pr_motor+pr_door
+        pr_all= (int(prace(user_dict[message.from_user.id]["long"],
+                          user_dict[message.from_user.id]["hight"]))+pr_motor+pr_door)*1.1
 
         await message.answer(
                     f'Ширина проема, мм: {user_dict[message.from_user.id]["long"]}\n'
