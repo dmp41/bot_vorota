@@ -1,7 +1,7 @@
 from aiogram import Router
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
-from bot_v_prace.database.database import user_dict_template,users_db
+
 from copy import deepcopy
 from aiogram import Bot, Dispatcher, F
 from bot_v_prace.keyboard.keyboard import keyboard
@@ -37,14 +37,26 @@ class FSMFillForm(StatesGroup):
 # и предлагать перейти к заполнению анкеты, отправив команду /fillform
 @router.message(CommandStart(), StateFilter(default_state))
 async def process_start_command(message: Message):
-    await message.answer(text='Чтобы перейти к заполнению анкеты - '
-                              'отправьте команду /fillform',reply_markup=keyboard)
-
+    await message.answer_photo(
+        photo='AgACAgIAAxkBAAPIZKpq93DFZAwN_y4zmJ3qV62cnAcAAoTOMRv82FFJEFdN9HvOJmwBAAMCAANzAAMvBA',
+        caption='Чтобы приступить к рассчету - отправьте '
+                'команду /fillform',reply_markup=keyboard)
+    #await message.answer(text='Чтобы перейти к заполнению анкеты - '
+                              #'отправьте команду /fillform',reply_markup=keyboard)
+    #await message.answer_photo(
+        #photo='AgACAgIAAxkBAAIDlWSqYy1CLXy2K7jvLMBD8uYZNUhDAAKEzjEb_NhRSTYKDDcX2pcXAQADAgADcwADLwQ',
+        #caption='Извините, не понятное сообщение'
+                #'Чтобы приступить - отправьте '
+                #'команду /fillform')
 
 # Этот хэндлер будет срабатывать на команду "/cancel" в любых состояниях,
 # кроме состояния по умолчанию, и отключать машину состояний
 @router.message(Command(commands='cancel'), ~StateFilter(default_state))
 async def process_cancel_command_state(message: Message, state: FSMContext):
+    #await message.answer_photo(
+        #photo='AgACAgIAAxkBAAPIZKpq93DFZAwN_y4zmJ3qV62cnAcAAoTOMRv82FFJEFdN9HvOJmwBAAMCAANzAAMvBA',
+        #caption='Чтобы приступить к рассчету - отправьте '
+                #'команду /fillform')
     await message.answer(text='Чтобы снова перейти к заполнению анкеты - '
                               'отправьте команду /fillform')
     # Сбрасываем состояние
@@ -55,19 +67,26 @@ async def process_cancel_command_state(message: Message, state: FSMContext):
 # по умолчанию и сообщать, что эта команда доступна в машине состояний
 @router.message(Command(commands='cancel'), StateFilter(default_state))
 async def process_cancel_command(message: Message):
-    await message.answer(text='Отменять нечего.\n\n'
-                              'Чтобы перейти к заполнению анкеты - '
-                              'отправьте команду /fillform')
+    await message.answer_photo(
+        photo='AgACAgIAAxkBAAPIZKpq93DFZAwN_y4zmJ3qV62cnAcAAoTOMRv82FFJEFdN9HvOJmwBAAMCAANzAAMvBA',
+        caption='Отменять нечего.\n\n'
+                'Чтобы приступить к рассчету - отправьте '
+                'команду /fillform')
+    #await message.answer(text='Отменять нечего.\n\n'
+                              #'Чтобы перейти к заполнению анкеты - '
+                              #'отправьте команду /fillform')
 
 
 # Этот хэндлер будет срабатывать на команду /fillform
 # и переводить бота в состояние ожидания ввода ширины
 @router.message(Command(commands='fillform'), StateFilter(default_state))
 async def process_fillform_command(message: Message, state: FSMContext):
-    await message.answer_photo(
-        photo='AgACAgIAAxkBAAMSZJEyGcTZQY0ICJlFl7sptYdGUycAAvrOMRsZNIlIjbH-uZ4STSIBAAMCAANzAAMvBA',
-        caption='Пожалуйста, введите ширину проема в мм от 2000 до 4500')
-    #await message.answer(text='Пожалуйста, введите ширину проема в мм от 2000 до 4500')
+    #await message.answer_photo(
+        #photo='AgACAgIAAxkBAAMSZJEyGcTZQY0ICJlFl7sptYdGUycAAvrOMRsZNIlIjbH-uZ4STSIBAAMCAANzAAMvBA',
+
+        #caption='Пожалуйста, введите ширину проема в мм от 2000 до 4500')
+    # photo='AgACAgIAAxkBAAMSZJEyGcTZQY0ICJlFl7sptYdGUycAAvrOMRsZNIlIjbH-uZ4STSIBAAMCAANzAAMvBA',
+    await message.answer(text='Пожалуйста, введите ширину проема в мм от 2000 до 4500')
     # Устанавливаем состояние ожидания ввода ширины
     await state.set_state(FSMFillForm.fill_long)
 
@@ -256,18 +275,25 @@ async def process_showdata_command(message: Message):
 
     else:
         # Если анкеты пользователя в базе нет - предлагаем заполнить
-        await message.answer(text='Вы еще не заполняли анкету. '
-                                  'Чтобы приступить - отправьте '
-                                  'команду /fillform')
+        await message.answer_photo(
+            photo='AgACAgIAAxkBAAPIZKpq93DFZAwN_y4zmJ3qV62cnAcAAoTOMRv82FFJEFdN9HvOJmwBAAMCAANzAAMvBA',
+            caption='Вы еще не заполняли анкету.'
+                    'Чтобы приступить к рассчету - отправьте '
+                    'команду /fillform')
+        #await message.answer(text='Вы еще не заполняли анкету. '
+                                  #'Чтобы приступить - отправьте '
+                                  #'команду /fillform')
 
 
 # Этот хэндлер будет срабатывать на любые сообщения, кроме тех
 # для которых есть отдельные хэндлеры, вне состояний
-@router.message(StateFilter(default_state))
-async def send_echo(message: Message):
-    await message.reply(text='Извините, не понятное сообщение'
-                             'Чтобы приступить - отправьте '
-                             'команду /fillform')
+#@router.message(StateFilter(default_state))
+#async def send_echo(message: Message, state: FSMContext):
+    #await message.answer_photo(
+        #photo='AgACAgIAAxkBAAPIZKpq93DFZAwN_y4zmJ3qV62cnAcAAoTOMRv82FFJEFdN9HvOJmwBAAMCAANzAAMvBA',
+        #caption='Извините, не понятное сообщение'
+                             #'Чтобы приступить к рассчету - отправьте '
+                             #'команду /fillform')
 
 
 
